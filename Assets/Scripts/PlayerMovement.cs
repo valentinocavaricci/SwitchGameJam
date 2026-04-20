@@ -6,12 +6,22 @@ public class PlayerMovement : MonoBehaviour
 {
     public float jumpForce = 6f;
     public float deathY = -6f;
+
     public TextMeshProUGUI scoreText;
     public GameObject gameOverPanel;
     public GameObject pausePanel;
 
+    public AudioClip jumpSound;
+    public AudioClip switchSound;
+    public AudioClip scoreSound;
+    public AudioClip gameOverSound;
+    public AudioClip buttonClickSound;
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
+    private AudioSource audioSource;
+    
+    public AudioSource backgroundMusicSource;
 
     private bool isRed = true;
     private bool isGameOver = false;
@@ -23,6 +33,7 @@ public class PlayerMovement : MonoBehaviour
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
+        audioSource = GetComponent<AudioSource>();
 
         Time.timeScale = 1f;
 
@@ -61,12 +72,14 @@ public class PlayerMovement : MonoBehaviour
         if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
+            PlaySound(jumpSound);
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
         {
             isRed = !isRed;
             UpdateColor();
+            PlaySound(switchSound);
         }
     }
 
@@ -104,6 +117,7 @@ public class PlayerMovement : MonoBehaviour
                 platform.hasBeenScored = true;
                 score++;
                 UpdateScoreUI();
+                PlaySound(scoreSound);
                 platform.StartDisappear();
             }
         }
@@ -118,6 +132,13 @@ public class PlayerMovement : MonoBehaviour
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
+
+        PlaySound(gameOverSound);
+
+        if (backgroundMusicSource != null)
+        {
+            backgroundMusicSource.Stop();
+        }
 
         Time.timeScale = 0f;
     }
@@ -134,6 +155,8 @@ public class PlayerMovement : MonoBehaviour
 
     public void ResumeGame()
     {
+        PlayButtonClick();
+
         isPaused = false;
 
         if (pausePanel != null)
@@ -144,7 +167,22 @@ public class PlayerMovement : MonoBehaviour
 
     public void RestartGame()
     {
+        PlayButtonClick();
+
         Time.timeScale = 1f;
         SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+    }
+
+    public void PlayButtonClick()
+    {
+        PlaySound(buttonClickSound);
+    }
+
+    void PlaySound(AudioClip clip)
+    {
+        if (clip != null && audioSource != null)
+        {
+            audioSource.PlayOneShot(clip);
+        }
     }
 }

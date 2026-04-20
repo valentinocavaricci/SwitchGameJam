@@ -34,7 +34,7 @@ public class PlatformSetup : MonoBehaviour
         if (!isDisappearing)
         {
             isDisappearing = true;
-            Invoke(nameof(Disappear), 0.25f);
+            Invoke(nameof(Disappear), 0.15f);
         }
     }
 
