@@ -9,9 +9,12 @@ public class PlayerMovement : MonoBehaviour
     public float deathY = -6f;
 
     public TextMeshProUGUI scoreText;
+    public TextMeshProUGUI finalScoreText;
+
     public GameObject gameOverPanel;
     public GameObject pausePanel;
     public GameObject modeText;
+
     public PlatformSpawner platformSpawner;
 
     public AudioClip jumpSound;
@@ -61,6 +64,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (modeText != null)
             modeText.SetActive(false);
+
+        if (finalScoreText != null)
+            finalScoreText.text = "Final Score: 0";
 
         UpdateColor();
         UpdateScoreUI();
@@ -193,6 +199,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (modeText != null)
             modeText.SetActive(false);
+
+        if (finalScoreText != null)
+            finalScoreText.text = "Final Score: " + score;
 
         PlaySound(gameOverSound);
 
