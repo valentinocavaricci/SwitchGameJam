@@ -179,3 +179,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c49a6dffacb54d6f88241a44c8e8386, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::PlatformSetup
+  isRed: 0
+  hasBeenScored: 0
+  isDisappearing: 0
+  isBonus: 0
+  bonusPoints: 5
+  bonusChance: 0.12
+  minScale: 0.8
+  maxScale: 1.3
+  normalSprite: {fileID: 0}
+  bonusSprite: {fileID: -1553011672, guid: 4890a6b8432f99b4eb6ee50654a76b10, type: 3}

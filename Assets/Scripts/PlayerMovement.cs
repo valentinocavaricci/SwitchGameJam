@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using TMPro;
+using System.Collections;
 
 public class PlayerMovement : MonoBehaviour
 {
@@ -10,6 +11,8 @@ public class PlayerMovement : MonoBehaviour
     public TextMeshProUGUI scoreText;
     public GameObject gameOverPanel;
     public GameObject pausePanel;
+    public GameObject modeText;
+    public PlatformSpawner platformSpawner;
 
     public AudioClip jumpSound;
     public AudioClip switchSound;
@@ -17,23 +20,36 @@ public class PlayerMovement : MonoBehaviour
     public AudioClip gameOverSound;
     public AudioClip buttonClickSound;
 
+    public AudioSource backgroundMusicSource;
+
+    public float stretchAmount = 1.2f;
+    public float squashAmount = 0.85f;
+    public float squashStretchTime = 0.06f;
+
+    public float oppositeModeInterval = 10f;
+    public float oppositeModeDuration = 3f;
+
     private Rigidbody2D rb;
     private SpriteRenderer sr;
     private AudioSource audioSource;
-    
-    public AudioSource backgroundMusicSource;
 
     private bool isRed = true;
     private bool isGameOver = false;
     private bool isPaused = false;
+    private bool isOppositeMode = false;
 
     private int score = 0;
+
+    private Vector3 originalScale;
+    private Coroutine squashStretchRoutine;
 
     void Start()
     {
         rb = GetComponent<Rigidbody2D>();
         sr = GetComponent<SpriteRenderer>();
         audioSource = GetComponent<AudioSource>();
+
+        originalScale = transform.localScale;
 
         Time.timeScale = 1f;
 
@@ -43,8 +59,13 @@ public class PlayerMovement : MonoBehaviour
         if (pausePanel != null)
             pausePanel.SetActive(false);
 
+        if (modeText != null)
+            modeText.SetActive(false);
+
         UpdateColor();
         UpdateScoreUI();
+
+        StartCoroutine(OppositeModeRoutine());
     }
 
     void Update()
@@ -73,6 +94,7 @@ public class PlayerMovement : MonoBehaviour
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
             PlaySound(jumpSound);
+            PlayJumpStretch();
         }
 
         if (Input.GetKeyDown(KeyCode.Space))
@@ -106,7 +128,14 @@ public class PlayerMovement : MonoBehaviour
 
         if (platform != null)
         {
-            if (platform.isRed != isRed)
+            bool isCorrectHit;
+
+            if (isOppositeMode)
+                isCorrectHit = (platform.isRed != isRed);
+            else
+                isCorrectHit = (platform.isRed == isRed);
+
+            if (!isCorrectHit)
             {
                 GameOver();
                 return;
@@ -118,8 +147,37 @@ public class PlayerMovement : MonoBehaviour
                 score++;
                 UpdateScoreUI();
                 PlaySound(scoreSound);
+
+                if (platformSpawner != null)
+                {
+                    platformSpawner.UpdateDifficulty(score);
+                }
+
                 platform.StartDisappear();
             }
+        }
+    }
+
+    IEnumerator OppositeModeRoutine()
+    {
+        while (!isGameOver)
+        {
+            yield return new WaitForSeconds(oppositeModeInterval);
+
+            if (isGameOver)
+                yield break;
+
+            isOppositeMode = true;
+
+            if (modeText != null)
+                modeText.SetActive(true);
+
+            yield return new WaitForSeconds(oppositeModeDuration);
+
+            isOppositeMode = false;
+
+            if (modeText != null)
+                modeText.SetActive(false);
         }
     }
 
@@ -132,6 +190,9 @@ public class PlayerMovement : MonoBehaviour
 
         if (gameOverPanel != null)
             gameOverPanel.SetActive(true);
+
+        if (modeText != null)
+            modeText.SetActive(false);
 
         PlaySound(gameOverSound);
 
@@ -184,5 +245,26 @@ public class PlayerMovement : MonoBehaviour
         {
             audioSource.PlayOneShot(clip);
         }
+    }
+
+    void PlayJumpStretch()
+    {
+        if (squashStretchRoutine != null)
+        {
+            StopCoroutine(squashStretchRoutine);
+        }
+
+        squashStretchRoutine = StartCoroutine(JumpStretchRoutine());
+    }
+
+    IEnumerator JumpStretchRoutine()
+    {
+        transform.localScale = new Vector3(originalScale.x * squashAmount, originalScale.y * stretchAmount, originalScale.z);
+        yield return new WaitForSeconds(squashStretchTime);
+
+        transform.localScale = new Vector3(originalScale.x * stretchAmount, originalScale.y * squashAmount, originalScale.z);
+        yield return new WaitForSeconds(squashStretchTime);
+
+        transform.localScale = originalScale;
     }
 }
